@@ -1,6 +1,8 @@
 import React from "react";
 import prisma from "@/lib/db";
 import DialogNewTask from "@/components/module/dialog/new";
+import TaskCard from "@/components/module/task-card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default async function InProgressSection() {
   const progressTask = await prisma.task.findMany({
@@ -23,26 +25,36 @@ export default async function InProgressSection() {
   });
 
   return (
-    <section className="flex flex-col gap-4">
-      <h4 className="text-center p-3 border border-zinc-800 rounded-lg font-semibold">
-        In Progress ({progressTask?.length})
+    <section className="flex flex-col gap-4 p-4 bg-zinc-900 rounded-lg h-fit">
+      <h4 className="font-semibold">
+        In Progress{" "}
+        <span className="text-white/60 text-xs">{progressTask?.length}</span>
       </h4>
 
-      <article className="flex flex-col gap-2">
-        {progressTask?.length >= 1 ? (
-          progressTask?.map((task, key) => (
-            <section key={key} className="text-sm">
-              {task?.name}
-            </section>
-          ))
-        ) : (
-          <p className="text-sm">
-            {todoTask?.length >= 1
-              ? "Oh noo, you don't have anything progress yet."
-              : "Yey! you don't have anything to progress yet."}
-          </p>
-        )}
-      </article>
+      <ScrollArea
+        className={`w-full mt-2 mb-3 ${
+          progressTask?.length >= 7 ? "pr-4 h-[calc(100vh_-_430px)]" : "pr-0"
+        }`}
+      >
+        <article className="flex flex-col gap-3">
+          {progressTask?.length >= 1 ? (
+            progressTask?.map((task, key) => (
+              <TaskCard
+                key={key}
+                taskId={task?.id}
+                name={task?.name}
+                priority={task?.priority}
+              />
+            ))
+          ) : (
+            <p className="text-sm">
+              {todoTask?.length >= 1
+                ? "Oh noo, your task doesn't progress yet."
+                : "Yey! you don't have task to progress yet."}
+            </p>
+          )}
+        </article>
+      </ScrollArea>
 
       <DialogNewTask status="in-progress" />
     </section>
