@@ -8,16 +8,25 @@ import TaskContext from "@/context/task-context";
 
 export default function TodoSection() {
   const [todoTask, setTodoTask] = useState<any>([]);
+  const [isLoading, setLoading] = useState(true);
   const [refetch, setRefetch] = useState(0);
   const { refetchCount, refetchTask } = useContext(TaskContext);
 
   useEffect(() => {
-    getTodoTask().then((res) => setTodoTask(res));
+    setLoading(true);
+    getTodoTask().then((res) => {
+      setTodoTask(res);
+      setLoading(false);
+    });
   }, [refetch]);
 
   useEffect(() => {
     if (refetchTask?.includes("to-do")) {
-      getTodoTask().then((res) => setTodoTask(res));
+      setLoading(true);
+      getTodoTask().then((res) => {
+        setTodoTask(res);
+        setLoading(false);
+      });
     }
   }, [refetchTask, refetchCount]);
 
@@ -39,7 +48,11 @@ export default function TodoSection() {
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {todoTask?.length >= 1 ? (
+              {isLoading ? (
+                <p className={`text-sm ${isLoading ? "inline" : "hidden"}`}>
+                  Loading...
+                </p>
+              ) : todoTask?.length >= 1 ? (
                 todoTask?.map((task: any, key: number) => (
                   <DialogEditTask
                     key={task?.id}

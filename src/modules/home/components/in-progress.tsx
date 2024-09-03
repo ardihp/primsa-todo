@@ -8,16 +8,25 @@ import TaskContext from "@/context/task-context";
 
 export default function InProgressSection() {
   const [progressTask, setProgressTask] = useState<any>([]);
+  const [isLoading, setLoading] = useState(true);
   const [refetch, setRefetch] = useState(0);
   const { refetchCount, refetchTask } = useContext(TaskContext);
 
   useEffect(() => {
-    getProgressTask().then((res) => setProgressTask(res));
+    setLoading(true);
+    getProgressTask().then((res) => {
+      setProgressTask(res);
+      setLoading(false);
+    });
   }, [refetch]);
 
   useEffect(() => {
     if (refetchTask?.includes("in-progress")) {
-      getProgressTask().then((res) => setProgressTask(res));
+      setLoading(true);
+      getProgressTask().then((res) => {
+        setProgressTask(res);
+        setLoading(false);
+      });
     }
   }, [refetchTask, refetchCount]);
 
@@ -40,10 +49,14 @@ export default function InProgressSection() {
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {progressTask?.length >= 1 ? (
+              {isLoading ? (
+                <p className={`text-sm ${isLoading ? "inline" : "hidden"}`}>
+                  Loading...
+                </p>
+              ) : progressTask?.length >= 1 ? (
                 progressTask?.map((task: any, key: number) => (
                   <DialogEditTask
-                  key={task?.id}
+                    key={task?.id}
                     indexKey={key}
                     taskId={task?.id}
                     name={task?.name}

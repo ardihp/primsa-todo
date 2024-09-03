@@ -8,16 +8,25 @@ import TaskContext from "@/context/task-context";
 
 export default function CompletedSection() {
   const [completedTask, setCompletedTask] = useState<any>([]);
+  const [isLoading, setLoading] = useState(true);
   const [refetch, setRefetch] = useState(0);
   const { refetchCount, refetchTask } = useContext(TaskContext);
 
   useEffect(() => {
-    getCompletedTask().then((res) => setCompletedTask(res));
+    setLoading(true);
+    getCompletedTask().then((res) => {
+      setCompletedTask(res);
+      setLoading(false);
+    });
   }, [refetch]);
 
   useEffect(() => {
     if (refetchTask?.includes("done")) {
-      getCompletedTask().then((res) => setCompletedTask(res));
+      setLoading(true);
+      getCompletedTask().then((res) => {
+        setCompletedTask(res);
+        setLoading(false);
+      });
     }
   }, [refetchTask, refetchCount]);
 
@@ -40,7 +49,11 @@ export default function CompletedSection() {
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
-              {completedTask?.length >= 1 ? (
+              {isLoading ? (
+                <p className={`text-sm ${isLoading ? "inline" : "hidden"}`}>
+                  Loading...
+                </p>
+              ) : completedTask?.length >= 1 ? (
                 completedTask?.map((task: any, key: number) => (
                   <DialogEditTask
                     key={task?.id}
