@@ -2,6 +2,7 @@
   "name": "primsa-todo",
   "version": "0.1.0",
   "private": true,
+  "types": "dist/index",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,6 +10,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@hello-pangea/dnd": "^16.6.0",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.19.0",
     "@radix-ui/react-dialog": "^1.1.1",
