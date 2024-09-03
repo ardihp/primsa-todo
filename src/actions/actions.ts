@@ -1,8 +1,47 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { equal } from "assert";
 import { z, ZodError } from "zod";
+
+export async function getTodoTask() {
+  const tasks = await prisma.task.findMany({
+    where: {
+      status: {
+        equals: "to-do",
+      },
+    },
+    orderBy: { order: "asc" },
+  });
+
+  return tasks;
+}
+
+export async function getProgressTask() {
+  const tasks = await prisma.task.findMany({
+    where: {
+      status: {
+        equals: "in-progress",
+      },
+    },
+    orderBy: { order: "asc" },
+  });
+
+  return tasks;
+}
+
+export async function getCompletedTask() {
+  const tasks = await prisma.task.findMany({
+    where: {
+      status: {
+        equals: "done",
+      },
+    },
+    orderBy: { order: "asc" },
+  });
+
+  return tasks;
+}
 
 export async function createTask(prevState: any, formData: FormData) {
   try {
@@ -16,15 +55,19 @@ export async function createTask(prevState: any, formData: FormData) {
       priority: formData.get("priority") as string,
     });
 
+    const status = formData.get("status") as string;
+    const order = Number(formData.get("order") || 0);
+
     await prisma.task.create({
       data: {
         name: data.name,
-        status: formData.get("status") as string,
+        status: status,
         priority: data.priority,
+        order: order,
       },
     });
 
-    revalidatePath("/");
+    reorderTask(status);
 
     return {
       status: "Success",
@@ -68,8 +111,6 @@ export async function editTask(prevState: any, formData: FormData) {
       },
     });
 
-    revalidatePath("/");
-
     return {
       status: "Success",
       inputValue: { name: "", priority: "" },
@@ -88,4 +129,112 @@ export async function editTask(prevState: any, formData: FormData) {
       inputValue: { name: "", priority: "" },
     };
   }
+}
+
+export async function reorderTask(status: string) {
+  try {
+    const tasks = await prisma.task.findMany({
+      where: {
+        status: {
+          equals: status,
+        },
+      },
+    });
+
+    tasks?.map(async (task, index) => {
+      await prisma.task.update({
+        where: {
+          id: task?.id,
+        },
+        data: {
+          order: index + 1,
+        },
+      });
+    });
+
+    return tasks;
+  } catch (err) {
+    console.log(status, "notfound");
+  }
+}
+
+export async function editOrder(
+  taskId: string,
+  destination: { droppableId: string; index: number }
+) {
+  try {
+    await prisma.task.update({
+      where: {
+        id: taskId,
+      },
+      data: {
+        status: destination?.droppableId,
+      },
+    });
+
+    if (destination?.droppableId === "to-do") {
+      const tasks = await getTodoTask();
+
+      const filteredTasks = tasks?.filter((task) => task?.id !== taskId);
+
+      filteredTasks?.splice(
+        destination?.index,
+        0,
+        tasks?.find((task) => task?.id === taskId)!
+      );
+
+      filteredTasks?.map(async (task, index) => {
+        await prisma.task.update({
+          where: {
+            id: task?.id,
+          },
+          data: {
+            order: index + 1,
+          },
+        });
+      });
+    } else if (destination?.droppableId === "in-progress") {
+      const tasks = await getProgressTask();
+
+      const filteredTasks = tasks?.filter((task) => task?.id !== taskId);
+
+      filteredTasks?.splice(
+        destination?.index,
+        0,
+        tasks?.find((task) => task?.id === taskId)!
+      );
+
+      filteredTasks?.map(async (task, index) => {
+        await prisma.task.update({
+          where: {
+            id: task?.id,
+          },
+          data: {
+            order: index + 1,
+          },
+        });
+      });
+    } else {
+      const tasks = await getCompletedTask();
+
+      const filteredTasks = tasks?.filter((task) => task?.id !== taskId);
+
+      filteredTasks?.splice(
+        destination?.index,
+        0,
+        tasks?.find((task) => task?.id === taskId)!
+      );
+
+      filteredTasks?.map(async (task, index) => {
+        await prisma.task.update({
+          where: {
+            id: task?.id,
+          },
+          data: {
+            order: index + 1,
+          },
+        });
+      });
+    }
+  } catch (err) {}
 }
