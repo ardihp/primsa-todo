@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import TaskProvider from "@/context/provider/task-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,10 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body
-        className={`${inter.className} min-h-screen flex items-center justify-center`}
-      >
-        {children} <Toaster />
+      <body className={`${inter.className} min-h-screen flex justify-center`}>
+        <TaskProvider>{children}</TaskProvider>
+        <Toaster />
       </body>
     </html>
   );
