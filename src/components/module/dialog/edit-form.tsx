@@ -20,13 +20,13 @@ interface EditFormProps {
     name: string;
     priority: string;
   };
-  setOpen: React.Dispatch<SetStateAction<boolean>>;
+  onSuccess: () => void;
 }
 
 export default function EditForm({
   taskId,
   inputValue,
-  setOpen,
+  onSuccess,
 }: EditFormProps) {
   const initialState = {
     status: "",
@@ -42,7 +42,7 @@ export default function EditForm({
 
   useEffect(() => {
     if (formState?.status === "Success") {
-      setOpen(false);
+      onSuccess();
       toast({
         title: `Task edited.`,
       });

@@ -16,10 +16,15 @@ import { toast } from "@/hooks/use-toast";
 
 interface CreateFormProps {
   status: string;
-  setOpen: React.Dispatch<SetStateAction<boolean>>;
+  order: number;
+  onSuccess: () => void;
 }
 
-export default function CreateForm({ status, setOpen }: CreateFormProps) {
+export default function CreateForm({
+  status,
+  order,
+  onSuccess,
+}: CreateFormProps) {
   const initialState = {
     status: "",
     errors: undefined,
@@ -30,7 +35,7 @@ export default function CreateForm({ status, setOpen }: CreateFormProps) {
 
   useEffect(() => {
     if (formState?.status === "Success") {
-      setOpen(false);
+      onSuccess();
       toast({
         title: `New task added to ${status?.split("-")?.join(" ")}.`,
       });
@@ -41,6 +46,7 @@ export default function CreateForm({ status, setOpen }: CreateFormProps) {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <Input name="order" value={order} className="hidden" readOnly />
       <Input name="status" value={status} className="hidden" readOnly />
       <section>
         <Input

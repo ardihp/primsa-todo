@@ -1,28 +1,19 @@
+import { getCompletedTask } from "@/actions/actions";
+import DialogEditTask from "@/components/module/dialog/edit";
 import DialogNewTask from "@/components/module/dialog/new";
-import TaskCard from "@/components/module/task-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import prisma from "@/lib/db";
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { Droppable } from "@hello-pangea/dnd";
+import TaskContext from "@/context/task-context";
 
-export default async function CompletedSection() {
-  const completedTask = await prisma.task.findMany({
-    where: {
-      status: {
-        equals: "done",
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+export default function CompletedSection() {
+  const [completedTask, setCompletedTask] = useState<any>([]);
+  const [refetch, setRefetch] = useState(0);
+  const { refetchTask } = useContext(TaskContext);
 
-  const todoTask = await prisma.task.findMany({
-    where: {
-      status: {
-        equals: "to-do",
-      },
-    },
-  });
+  useEffect(() => {
+    getCompletedTask().then((res) => setCompletedTask(res));
+  }, [refetch, refetchTask]);
 
   return (
     <section className="flex flex-col gap-4 p-4 bg-zinc-900 rounded-lg h-fit">
@@ -36,27 +27,38 @@ export default async function CompletedSection() {
           completedTask?.length >= 7 ? "pr-4 h-[calc(100vh_-_430px)]" : "pr-0"
         }`}
       >
-        <article className="flex flex-col gap-3">
-          {completedTask?.length >= 1 ? (
-            completedTask?.map((task, key) => (
-              <TaskCard
-                key={key}
-                taskId={task?.id}
-                name={task?.name}
-                priority={task?.priority}
-              />
-            ))
-          ) : (
-            <p className="text-sm">
-              {todoTask?.length >= 1
-                ? "Oh noo, you haven't done anything."
-                : "Yey! you don't have task to worry about."}
-            </p>
+        <Droppable droppableId="done">
+          {(provided) => (
+            <article
+              className="flex flex-col gap-3"
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
+              {completedTask?.length >= 1 ? (
+                completedTask?.map((task: any, key: number) => (
+                  <DialogEditTask
+                    key={task?.name}
+                    indexKey={key}
+                    taskId={task?.id}
+                    name={task?.name}
+                    priority={task?.priority}
+                    handleRefetch={() => setRefetch((prev) => prev + 1)}
+                  />
+                ))
+              ) : (
+                <p className="text-sm">{"You don't have completed task."}</p>
+              )}
+              {provided.placeholder}
+            </article>
           )}
-        </article>
+        </Droppable>
       </ScrollArea>
 
-      <DialogNewTask status="done" />
+      <DialogNewTask
+        status="done"
+        order={completedTask?.length + 1}
+        handleRefetch={() => setRefetch((prev) => prev + 1)}
+      />
     </section>
   );
 }

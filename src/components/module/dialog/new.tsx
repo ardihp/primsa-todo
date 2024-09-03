@@ -13,9 +13,15 @@ import CreateForm from "./create-form";
 
 interface DialogNewTaskProps {
   status: string;
+  order: number;
+  handleRefetch: () => void;
 }
 
-export default function DialogNewTask({ status }: DialogNewTaskProps) {
+export default function DialogNewTask({
+  status,
+  order,
+  handleRefetch,
+}: DialogNewTaskProps) {
   const [isOpen, setOpen] = useState(false);
 
   return (
@@ -31,7 +37,14 @@ export default function DialogNewTask({ status }: DialogNewTaskProps) {
           <DialogTitle>New Task</DialogTitle>
           <DialogDescription />
         </DialogHeader>
-        <CreateForm status={status} setOpen={setOpen} />
+        <CreateForm
+          status={status}
+          order={order}
+          onSuccess={() => {
+            setOpen(false);
+            handleRefetch();
+          }}
+        />
       </DialogContent>
     </Dialog>
   );

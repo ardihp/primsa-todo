@@ -1,28 +1,19 @@
-import React from "react";
-import prisma from "@/lib/db";
+import React, { useContext, useEffect, useState } from "react";
 import DialogNewTask from "@/components/module/dialog/new";
-import TaskCard from "@/components/module/task-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { getProgressTask } from "@/actions/actions";
+import DialogEditTask from "@/components/module/dialog/edit";
+import { Droppable } from "@hello-pangea/dnd";
+import TaskContext from "@/context/task-context";
 
-export default async function InProgressSection() {
-  const progressTask = await prisma.task.findMany({
-    where: {
-      status: {
-        equals: "in-progress",
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+export default function InProgressSection() {
+  const [progressTask, setProgressTask] = useState<any>([]);
+  const [refetch, setRefetch] = useState(0);
+  const { refetchTask } = useContext(TaskContext);
 
-  const todoTask = await prisma.task.findMany({
-    where: {
-      status: {
-        equals: "to-do",
-      },
-    },
-  });
+  useEffect(() => {
+    getProgressTask().then((res) => setProgressTask(res));
+  }, [refetch, refetchTask]);
 
   return (
     <section className="flex flex-col gap-4 p-4 bg-zinc-900 rounded-lg h-fit">
@@ -36,27 +27,40 @@ export default async function InProgressSection() {
           progressTask?.length >= 7 ? "pr-4 h-[calc(100vh_-_430px)]" : "pr-0"
         }`}
       >
-        <article className="flex flex-col gap-3">
-          {progressTask?.length >= 1 ? (
-            progressTask?.map((task, key) => (
-              <TaskCard
-                key={key}
-                taskId={task?.id}
-                name={task?.name}
-                priority={task?.priority}
-              />
-            ))
-          ) : (
-            <p className="text-sm">
-              {todoTask?.length >= 1
-                ? "Oh noo, your task doesn't progress yet."
-                : "Yey! you don't have task to progress yet."}
-            </p>
+        <Droppable droppableId="in-progress">
+          {(provided) => (
+            <article
+              className="flex flex-col gap-3"
+              {...provided.droppableProps}
+              ref={provided.innerRef}
+            >
+              {progressTask?.length >= 1 ? (
+                progressTask?.map((task: any, key: number) => (
+                  <DialogEditTask
+                    key={task?.name}
+                    indexKey={key}
+                    taskId={task?.id}
+                    name={task?.name}
+                    priority={task?.priority}
+                    handleRefetch={() => setRefetch((prev) => prev + 1)}
+                  />
+                ))
+              ) : (
+                <p className="text-sm">
+                  {"You don't have task to progress yet."}
+                </p>
+              )}
+              {provided.placeholder}
+            </article>
           )}
-        </article>
+        </Droppable>
       </ScrollArea>
 
-      <DialogNewTask status="in-progress" />
+      <DialogNewTask
+        status="in-progress"
+        order={progressTask?.length + 1}
+        handleRefetch={() => setRefetch((prev) => prev + 1)}
+      />
     </section>
   );
 }
