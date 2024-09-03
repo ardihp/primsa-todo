@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db";
-import { equal } from "assert";
 import { z, ZodError } from "zod";
 
 export async function getTodoTask() {
@@ -193,6 +192,8 @@ export async function editOrder(
           },
         });
       });
+
+      return tasks;
     } else if (destination?.droppableId === "in-progress") {
       const tasks = await getProgressTask();
 
@@ -214,6 +215,8 @@ export async function editOrder(
           },
         });
       });
+
+      return tasks;
     } else {
       const tasks = await getCompletedTask();
 
@@ -235,6 +238,22 @@ export async function editOrder(
           },
         });
       });
+
+      return tasks;
     }
   } catch (err) {}
+}
+
+export async function deleteTask(taskId: string) {
+  try {
+    await prisma.task.delete({
+      where: {
+        id: taskId,
+      },
+    });
+
+    return "Success";
+  } catch (err) {
+    console.log(err);
+  }
 }

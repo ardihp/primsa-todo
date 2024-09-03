@@ -1,8 +1,9 @@
 import { createContext } from "react";
 
 const TaskContext = createContext({
-  refetchTask: 0,
-  setRefetchTask: () => {},
+  refetchCount: 0,
+  refetchTask: [""],
+  setRefetchTask: (status: string[]) => {},
 });
 
 export default TaskContext;

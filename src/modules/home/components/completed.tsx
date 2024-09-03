@@ -9,11 +9,17 @@ import TaskContext from "@/context/task-context";
 export default function CompletedSection() {
   const [completedTask, setCompletedTask] = useState<any>([]);
   const [refetch, setRefetch] = useState(0);
-  const { refetchTask } = useContext(TaskContext);
+  const { refetchCount, refetchTask } = useContext(TaskContext);
 
   useEffect(() => {
     getCompletedTask().then((res) => setCompletedTask(res));
-  }, [refetch, refetchTask]);
+  }, [refetch]);
+
+  useEffect(() => {
+    if (refetchTask?.includes("done")) {
+      getCompletedTask().then((res) => setCompletedTask(res));
+    }
+  }, [refetchTask, refetchCount]);
 
   return (
     <section className="flex flex-col gap-4 p-4 bg-zinc-900 rounded-lg h-fit">
@@ -23,21 +29,21 @@ export default function CompletedSection() {
       </h4>
 
       <ScrollArea
-        className={`w-full mt-2 mb-3 ${
+        className={`w-full mt-2 ${
           completedTask?.length >= 7 ? "pr-4 h-[calc(100vh_-_430px)]" : "pr-0"
         }`}
       >
         <Droppable droppableId="done">
           {(provided) => (
             <article
-              className="flex flex-col gap-3"
+              className="flex flex-col"
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
               {completedTask?.length >= 1 ? (
                 completedTask?.map((task: any, key: number) => (
                   <DialogEditTask
-                    key={task?.name}
+                    key={task?.id}
                     indexKey={key}
                     taskId={task?.id}
                     name={task?.name}
@@ -46,7 +52,13 @@ export default function CompletedSection() {
                   />
                 ))
               ) : (
-                <p className="text-sm">{"You don't have completed task."}</p>
+                <p
+                  className={`text-sm ${
+                    completedTask?.length >= 1 ? "hidden" : "inline"
+                  }`}
+                >
+                  {"You don't have completed task."}
+                </p>
               )}
               {provided.placeholder}
             </article>

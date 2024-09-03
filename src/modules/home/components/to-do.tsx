@@ -9,15 +9,17 @@ import TaskContext from "@/context/task-context";
 export default function TodoSection() {
   const [todoTask, setTodoTask] = useState<any>([]);
   const [refetch, setRefetch] = useState(0);
-  const { refetchTask } = useContext(TaskContext);
+  const { refetchCount, refetchTask } = useContext(TaskContext);
 
   useEffect(() => {
-    getTodoTask().then((res) => {
-      setTodoTask(res);
-      console.log(res);
-    });
-    console.log("get");
-  }, [refetch, refetchTask]);
+    getTodoTask().then((res) => setTodoTask(res));
+  }, [refetch]);
+
+  useEffect(() => {
+    if (refetchTask?.includes("to-do")) {
+      getTodoTask().then((res) => setTodoTask(res));
+    }
+  }, [refetchTask, refetchCount]);
 
   return (
     <section className="flex flex-col gap-4 p-4 bg-zinc-900 rounded-lg h-fit">
@@ -26,21 +28,21 @@ export default function TodoSection() {
       </h4>
 
       <ScrollArea
-        className={`w-full mt-2 mb-3 ${
+        className={`w-full mt-2 ${
           todoTask?.length >= 7 ? "pr-4 h-[calc(100vh_-_430px)]" : "pr-0"
         }`}
       >
         <Droppable droppableId="to-do">
           {(provided) => (
             <article
-              className="flex flex-col gap-3"
+              className="flex flex-col"
               {...provided.droppableProps}
               ref={provided.innerRef}
             >
               {todoTask?.length >= 1 ? (
                 todoTask?.map((task: any, key: number) => (
                   <DialogEditTask
-                    key={task?.name}
+                    key={task?.id}
                     indexKey={key}
                     taskId={task?.id}
                     name={task?.name}
@@ -49,7 +51,11 @@ export default function TodoSection() {
                   />
                 ))
               ) : (
-                <p className="text-sm">
+                <p
+                  className={`text-sm ${
+                    todoTask?.length >= 1 ? "hidden" : "inline"
+                  }`}
+                >
                   {"Yey! you don't have any task to do."}
                 </p>
               )}

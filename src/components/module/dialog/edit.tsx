@@ -37,7 +37,7 @@ export default function DialogEditTask({
           {(provided) => (
             <section
               ref={provided.innerRef}
-              className="flex flex-col gap-2 bg-zinc-800 border border-zinc-700 rounded-lg p-3 cursor-pointer"
+              className="flex flex-col gap-2 bg-zinc-800 border border-zinc-700 rounded-lg p-3 mb-3"
               onClick={() => setOpen(!isOpen)}
               {...provided.draggableProps}
               {...provided.dragHandleProps}
